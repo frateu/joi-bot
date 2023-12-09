@@ -1,6 +1,6 @@
 package br.frateu.joi.economia;
 
-import br.frateu.joi.JoiConstantes;
+import br.frateu.joi.ConstantesJoi;
 import br.frateu.joi.update.UpdateJoi;
 import com.google.gson.Gson;
 import com.pengrad.telegrambot.TelegramBot;
@@ -26,8 +26,10 @@ public class ConversaoMoeda {
     private String moedaOriginal = "";
     private String moedaDestino = "";
 
-    public ConversaoMoeda() {
-        setStatusConversao(JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_INICIAR);
+    public ConversaoMoeda(String moedaOriginal, String moedaDestino) {
+        setStatusConversao(ConstantesJoi.CONST_CONVERSAO_MOEDA_STATUS_INICIAR);
+        setMoedaOriginal(moedaOriginal);
+        setMoedaDestino(moedaDestino);
     }
 
     public BigDecimal getValorConverter() {
@@ -37,7 +39,6 @@ public class ConversaoMoeda {
     public void setValorConverter(@NotNull Update update) {
         try {
             this.valorConverter = new BigDecimal(update.message().text());
-            this.statusConversao = JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_VALOR;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -63,18 +64,16 @@ public class ConversaoMoeda {
         return moedaOriginal;
     }
 
-    public void setMoedaOriginal(@NotNull Update update) {
-        this.moedaOriginal = update.message().text();
-        this.statusConversao = JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_MOEDA_ORIGEM_INSERIDA;
+    public void setMoedaOriginal(String moedaOriginal) {
+        this.moedaOriginal = moedaOriginal;
     }
 
     public String getMoedaDestino() {
         return moedaDestino;
     }
 
-    public void setMoedaDestino(@NotNull Update update) {
-        this.moedaDestino = update.message().text();
-        this.statusConversao = JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_MOEDA_DESTINO_INSERIDA;
+    public void setMoedaDestino(String moedaDestino) {
+        this.moedaDestino = moedaDestino;
     }
 
     public BigDecimal getValorConversaoMoeda() {
@@ -85,26 +84,6 @@ public class ConversaoMoeda {
         this.valorConversaoMoeda = valorConversaoMoeda;
     }
 
-    private void moedaOrigem(@NotNull TelegramBot bot, @NotNull Update update) {
-        // Envio de "Escrevendo" antes de enviar a resposta
-        bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
-
-        // Envio da mensagem de resposta
-        bot.execute(new SendMessage(update.message().chat().id(),"Insira a moeda de origem."));
-
-        setStatusConversao(JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_MOEDA_ORIGEM);
-    }
-
-    private void moedaDestino(@NotNull TelegramBot bot, @NotNull Update update) {
-        // Envio de "Escrevendo" antes de enviar a resposta
-        bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
-
-        // Envio da mensagem de resposta
-        bot.execute(new SendMessage(update.message().chat().id(),"Insira a moeda de destino."));
-
-        setStatusConversao(JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_MOEDA_DESTINO);
-    }
-
     private void valorConverter(@NotNull TelegramBot bot, @NotNull Update update) {
         // Envio de "Escrevendo" antes de enviar a resposta
         bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
@@ -112,7 +91,7 @@ public class ConversaoMoeda {
         // Envio da mensagem de resposta
         bot.execute(new SendMessage(update.message().chat().id(),"Insira a valor a ser convertido."));
 
-        setStatusConversao(JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_VALOR);
+        setStatusConversao(ConstantesJoi.CONST_CONVERSAO_MOEDA_STATUS_CONVERTER);
     }
 
     private void valorConvertido(@NotNull TelegramBot bot, @NotNull Update update) {
@@ -122,7 +101,8 @@ public class ConversaoMoeda {
         // Envio da mensagem de resposta
         bot.execute(new SendMessage(update.message().chat().id(),"O valor convertido de " + getMoedaOriginal() + " para " + getMoedaDestino() + " é de: " + getValorConvertido()));
 
-        UpdateJoi.statusConversao = new HashMap<>();
+        ControladorEconomia.statusConversao = new HashMap<>();
+        UpdateJoi.statusEconomia = new HashMap<>();
     }
 
     private void valorConversao(@NotNull Update update) {
@@ -151,8 +131,6 @@ public class ConversaoMoeda {
             setValorConversaoMoeda(new BigDecimal(hashMapValorMoeda.get(getMoedaDestino())));
 
             setValorConvertido(getValorConverter().multiply(getValorConversaoMoeda()));
-
-            setStatusConversao(JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_VALOR_CONVERTIDO);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -179,18 +157,10 @@ public class ConversaoMoeda {
 
     public void run(@NotNull TelegramBot bot, @NotNull Update update) {
         switch(getStatusConversao()){
-            case JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_INICIAR:
-                moedaOrigem(bot, update);
-                break;
-            case JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_MOEDA_ORIGEM:
-                setMoedaOriginal(update);
-                moedaDestino(bot, update);
-                break;
-            case JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_MOEDA_DESTINO:
-                setMoedaDestino(update);
+            case ConstantesJoi.CONST_CONVERSAO_MOEDA_STATUS_INICIAR:
                 valorConverter(bot, update);
                 break;
-            case JoiConstantes.CONST_CONVERSAO_MOEDA_STATUS_VALOR:
+            case ConstantesJoi.CONST_CONVERSAO_MOEDA_STATUS_CONVERTER:
                 valorConversao(update);
                 valorConvertido(bot, update);
                 break;

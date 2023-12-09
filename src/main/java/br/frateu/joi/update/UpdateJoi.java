@@ -1,6 +1,6 @@
 package br.frateu.joi.update;
 
-import br.frateu.joi.economia.ConversaoMoeda;
+import br.frateu.joi.economia.ControladorEconomia;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.ChatMemberUpdated;
 import com.pengrad.telegrambot.model.Update;
@@ -22,7 +22,7 @@ public class UpdateJoi extends TimerTask {
     TelegramBot bot = new TelegramBot(token);
     int offSetValue = 0;
 
-    public static HashMap<ChatMemberUpdated, ConversaoMoeda> statusConversao = new HashMap<>();
+    public static HashMap<ChatMemberUpdated, ControladorEconomia> statusEconomia = new HashMap<>();
 
     @Override
     public void run() {
@@ -40,21 +40,21 @@ public class UpdateJoi extends TimerTask {
             // Atualização do off-set
             offSetValue = update.updateId() + 1;
 
-            if (update.message().text().equals("/teste") || statusConversao.containsKey(update.chatMember())) {
-                if(statusConversao.containsKey(update.chatMember())) {
-                    ConversaoMoeda conversaoMoeda = statusConversao.get(update.chatMember());
-                    conversaoMoeda.run(bot, update);
+            if (update.message().text().equals("/economia") || statusEconomia.containsKey(update.chatMember())) {
+                if (statusEconomia.containsKey(update.chatMember())) {
+                    ControladorEconomia controladorEconomia = statusEconomia.get(update.chatMember());
+                    controladorEconomia.run(bot, update);
                 } else {
-                    statusConversao.put(update.chatMember(), new ConversaoMoeda());
-                    ConversaoMoeda conversaoMoeda = statusConversao.get(update.chatMember());
-                    conversaoMoeda.run(bot, update);
+                    statusEconomia.put(update.chatMember(), new ControladorEconomia());
+                    ControladorEconomia controladorEconomia = statusEconomia.get(update.chatMember());
+                    controladorEconomia.run(bot, update);
                 }
             } else {
                 // Envio de "Escrevendo" antes de enviar a resposta
                 bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
 
                 // Envio da mensagem de resposta
-                bot.execute(new SendMessage(update.message().chat().id(),"Sei lá!!"));
+                bot.execute(new SendMessage(update.message().chat().id(),"Entendi não, mozão..."));
             }
         }
     }
