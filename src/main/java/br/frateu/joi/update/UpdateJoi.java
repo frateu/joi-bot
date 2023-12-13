@@ -22,7 +22,7 @@ public class UpdateJoi extends TimerTask {
     TelegramBot bot = new TelegramBot(token);
     int offSetValue = 0;
 
-    public static HashMap<ChatMemberUpdated, ControladorEconomia> statusEconomia = new HashMap<>();
+    public static HashMap<String, ControladorEconomia> statusEconomia = new HashMap<>();
 
     @Override
     public void run() {
@@ -40,13 +40,13 @@ public class UpdateJoi extends TimerTask {
             // Atualização do off-set
             offSetValue = update.updateId() + 1;
 
-            if (update.message().text().equals("/economia") || statusEconomia.containsKey(update.chatMember())) {
-                if (statusEconomia.containsKey(update.chatMember())) {
-                    ControladorEconomia controladorEconomia = statusEconomia.get(update.chatMember());
+            if (update.message().text().equals("/economia") || statusEconomia.containsKey(update.message().from().username())) {
+                if (statusEconomia.containsKey(update.message().from().username())) {
+                    ControladorEconomia controladorEconomia = statusEconomia.get(update.message().from().username());
                     controladorEconomia.run(bot, update);
                 } else {
-                    statusEconomia.put(update.chatMember(), new ControladorEconomia());
-                    ControladorEconomia controladorEconomia = statusEconomia.get(update.chatMember());
+                    statusEconomia.put(update.message().from().username(), new ControladorEconomia());
+                    ControladorEconomia controladorEconomia = statusEconomia.get(update.message().from().username());
                     controladorEconomia.run(bot, update);
                 }
             } else {
